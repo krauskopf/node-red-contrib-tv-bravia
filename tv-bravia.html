@@ -1,0 +1,125 @@
+<!--
+
+  TV BRAVIA - config node which represents the Sony Bravia Television. Holds address and pre shared key.
+
+-->
+<script type="text/javascript">
+  RED.nodes.registerType("tv-bravia", {
+    category: "config",
+    defaults: {
+      name: {value:"", required:false},
+      address: {value:"", required:true},
+      port: {value:"80", required:true},
+      debug: {value:false, required:true}
+    },
+    credentials: {
+      key: {type: "text"}
+    },
+    label: function() {
+      return this.name ? this.name : 'TV Bravia';
+    }
+  });
+</script>
+
+<script type="text/x-red" data-template-name="tv-bravia">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" />
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-address"><i class="fa fa-globe"></i> Address</label>
+        <input type="text" id="node-config-input-address" placeholder="e.g. 192.168.0.5" />
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-port"><i class="fa fa-sign-in"></i> Port</label>
+        <input type="text" id="node-config-input-port" placeholder="80" />
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-key"><i class="fa fa-key"></i> Username</label>
+        <input type="text" id="node-config-input-key" placeholder="0000" />
+    </div>
+    <div class="form-row">
+      <label>&nbsp;</label>
+      <input type="checkbox" id="node-config-input-debug" style="display: inline-block; width: auto; vertical-align: top;">
+      <label for="node-config-input-debug" style="width: 70%;"> Debug mode</label>
+    </div>
+    <div class="form-tips">
+      <p></p>
+      <p>Hint: You need to set your TV to use a pre-shared key. </p>
+      <p> - Navigate to: [Settings] → [Network] → [Home Network Setup] → [IP Control]</p>
+      <p> - Set [Authentication] to [Normal and Pre-Shared Key]</p>
+      <p> - There should be a new menu entry [Pre-Shared Key]. Set it equal to the key field.</p>
+    </div>
+</script>
+
+
+
+
+
+<!--
+
+  TV BRAVIA - "put" node to to send a command (action) to the tv.
+
+-->
+<script type="text/javascript">
+  RED.nodes.registerType("tv-bravia-put", {
+    category: "devices",
+    color: "#B24F3F",
+    icon: "tv.png",
+    defaults: {
+      device: {type:"tv-bravia", required:true},
+      name: {value:"", required:false},
+      action: {value:"Mute", required:true}
+    },
+    inputs:1,
+    outputs:1,
+    paletteLabel: "Bravia Put",
+    label: function() {
+      if (this.name) {
+        return this.name;
+      }
+
+      return "Action: " + this.action;
+    }
+  });
+</script>
+
+<script type="text/x-red" data-template-name="tv-bravia-put">
+    <div class="form-row">
+        <label for="node-input-device"><i class="fa fa-sign-in"></i> Account</label>
+        <input type="text" id="node-input-device">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" />
+    </div>
+    <div class="form-row">
+        <label for="node-input-action"><i class="fa fa-send"></i> Action</label>
+        <select id="node-input-action" style="width:70%">
+            <option value="PowerOn">PowerOn</option>
+            <option value="PowerOff">PowerOff</option>
+            <option value="Mute">Mute</option>
+        </select>
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="tv-bravia-put">
+  <p>Send a single action to the TV.</p>
+
+  <h3>Inputs</h3>
+    <dl class="message-properties">
+      <dt class="optional">action <span class="property-type">string</span></dt>
+      <dd> if not set in the node configuration panel, this property specifies the command to be send to the TV.</dd>
+    </dl>
+
+  <h3>Outputs</h3>
+
+  <h3>Details</h3>
+    <p>The node sends a single action to the TV.<br>
+    If no action is given in the node configuration panel, then the action in <code>msg.action</code> is used.</p>
+
+  <h3>References</h3>
+    <ul>
+      <li><a href="https://github.com/krauskopf/node-red-contrib-tv-bravia">GitHub</a> - the nodes github repository</li>
+    </ul>
+</script>

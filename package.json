@@ -1,0 +1,34 @@
+{
+  "name": "node-red-contrib-tv-bravia",
+  "version": "0.1.0",
+  "description": "Node-RED nodes to control Sony Bravia TVs",
+  "dependencies": {
+    "sony-bravia-tv-remote": "2.0.0"
+  },
+  "engines": {
+    "node": ">=5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/krauskopf/node-red-contrib-tv-bravia"
+  },
+  "license": "MIT",
+  "keywords": [
+    "node-red",
+    "Sony",
+    "Bravia",
+    "TV",
+    "Television",
+    "Node-Red"
+  ],
+  "node-red": {
+    "nodes": {
+      "TV-Bravia": "tv-bravia.js"
+    }
+  },
+  "author": {
+    "name": "Sebastian Krauskopf",
+    "email": "mail@sebakrau.de",
+    "url": "www.sebakrau.de"
+  }
+}
