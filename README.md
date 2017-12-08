@@ -14,7 +14,7 @@ There is a new nodes which appears in the category 'devices' in your Node-Red pa
 
 ![nodes.png](./doc/nodes.png)
 
-#### Sony Put
+#### Bravia Action
 Sends a single action to the TV.
 
 ## History
@@ -22,6 +22,7 @@ Sends a single action to the TV.
 
 ## Credits
 - Sebastian Krauskopf (mail@sebakrau.de)
+
 This project is heavily influenced by the work of:
 - JoshuaRogen (https://github.com/JoshuaRogan/sony-bravia-remote)
 - Stefan Breunig (https://blog.breunig.xyz/2014/11/14/remote-control-bravia-tvs-with-authentication.html)
