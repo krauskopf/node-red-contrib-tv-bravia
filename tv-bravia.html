@@ -13,7 +13,7 @@
       debug: {value:false, required:true}
     },
     credentials: {
-      key: {type: "text"}
+      key: {type: "text", required:true}
     },
     label: function() {
       return this.name ? this.name : 'TV Bravia';
@@ -22,34 +22,36 @@
 </script>
 
 <script type="text/x-red" data-template-name="tv-bravia">
-    <div class="form-row">
-        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
-        <input type="text" id="node-config-input-name" />
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-address"><i class="fa fa-globe"></i> Address</label>
-        <input type="text" id="node-config-input-address" placeholder="e.g. 192.168.0.5" />
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-port"><i class="fa fa-sign-in"></i> Port</label>
-        <input type="text" id="node-config-input-port" placeholder="80" />
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-key"><i class="fa fa-key"></i> Username</label>
-        <input type="text" id="node-config-input-key" placeholder="0000" />
-    </div>
-    <div class="form-row">
-      <label>&nbsp;</label>
-      <input type="checkbox" id="node-config-input-debug" style="display: inline-block; width: auto; vertical-align: top;">
-      <label for="node-config-input-debug" style="width: 70%;"> Debug mode</label>
-    </div>
-    <div class="form-tips">
-      <p></p>
-      <p>Hint: You need to set your TV to use a pre-shared key. </p>
-      <p> - Navigate to: [Settings] → [Network] → [Home Network Setup] → [IP Control]</p>
-      <p> - Set [Authentication] to [Normal and Pre-Shared Key]</p>
-      <p> - There should be a new menu entry [Pre-Shared Key]. Set it equal to the key field.</p>
-    </div>
+  <div class="form-row">
+    <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-config-input-name" />
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-address"><i class="fa fa-globe"></i> Address</label>
+    <input type="text" id="node-config-input-address" placeholder="e.g. 192.168.0.5" />
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-port"><i class="fa fa-sign-in"></i> Port</label>
+    <input type="text" id="node-config-input-port" placeholder="80" />
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-key"><i class="fa fa-key"></i> Username</label>
+    <input type="text" id="node-config-input-key" placeholder="0000" />
+  </div>
+  <div class="form-row">
+    <label>&nbsp;</label>
+    <input type="checkbox" id="node-config-input-debug" style="display: inline-block; width: auto; vertical-align: top;">
+    <label for="node-config-input-debug" style="width: 70%;"> Debug mode</label>
+  </div>
+  <div class="form-tips">
+    <p></p>
+    <p>Hint: You need to set your TV to use a pre-shared key. (Default: 0000)</p>
+    <ul>
+      <li>Navigate to: [Settings] → [Network] → [Home Network Setup] → [IP Control]</li>
+      <li>Set [Authentication] to [Normal and Pre-Shared Key]</li>
+      <li>There should be a new menu entry [Pre-Shared Key]. Set it equal to the key field.</li>
+    </ul>
+  </div>
 </script>
 
 
@@ -69,54 +71,209 @@
     defaults: {
       device: {type:"tv-bravia", required:true},
       name: {value:"", required:false},
-      action: {value:"Mute", required:true}
+      action: {value:"", required:false}
     },
-    inputs:1,
-    outputs:1,
-    paletteLabel: "Bravia Put",
+    inputs: 1,
+    outputs: 1,
+    paletteLabel: "Bravia Action",
     label: function() {
       if (this.name) {
         return this.name;
       }
+      if (this.action) {
+        return this.action;
+      }
+      return "Bravia Action";
+    },
+    oneditprepare: function() {
+      var node = this;
 
-      return "Action: " + this.action;
+      $('#node-input-scanaction').click(function() {
+        scanActions();
+      });
+
+      function scanActions() {
+        var current = $('#node-input-action').val();
+        var config = RED.nodes.node($('#node-input-device').val());
+
+        if(config && config.address) {
+
+          RED.notify("Requesting supported actions from TV.", "info");
+
+          // Read list of possible reference nodes from server and add to dropdown
+          $.get('tvbravia/actions', { address: config.address })
+            .done(function(data) {
+              RED.notify("Actions received.", "info");
+              var actions = JSON.parse(data);
+
+              // Clear all services
+              $('#node-input-action').find('option').remove();
+              $('#node-input-action').append('<option value="' + '">' +  '</option>');
+
+              // And add the received actions
+              actions.forEach(function(action) {
+                $('#node-input-action').append('<option value="' + action + '">' + action + '</option>');
+              });
+              $('#node-input-action').val(current);
+            })
+            .fail(function() {
+              RED.notify("Something went wrong. Please retry.", "error");
+            })
+
+        } else {
+          RED.notify("Cannot receive action. Please check required informations: address", "warning");
+        }
+      }
     }
   });
 </script>
 
 <script type="text/x-red" data-template-name="tv-bravia-put">
-    <div class="form-row">
-        <label for="node-input-device"><i class="fa fa-sign-in"></i> Account</label>
-        <input type="text" id="node-input-device">
-    </div>
-    <div class="form-row">
-        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-        <input type="text" id="node-input-name" />
-    </div>
-    <div class="form-row">
-        <label for="node-input-action"><i class="fa fa-send"></i> Action</label>
-        <select id="node-input-action" style="width:70%">
-            <option value="PowerOn">PowerOn</option>
-            <option value="PowerOff">PowerOff</option>
-            <option value="Mute">Mute</option>
-        </select>
-    </div>
+  <div class="form-row">
+    <label for="node-input-device"><i class="fa fa-sign-in"></i> Device</label>
+    <input type="text" id="node-input-device">
+  </div>
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-action"><i class="fa fa-send"></i> Action</label>
+    <select id="node-input-action" style="width:50%">
+      <option value=""></option>
+      <option value="Num1">Num1</option>
+      <option value="Num2">Num2</option>
+      <option value="Num3">Num3</option>
+      <option value="Num4">Num4</option>
+      <option value="Num5">Num5</option>
+      <option value="Num6">Num6</option>
+      <option value="Num7">Num7</option>
+      <option value="Num8">Num8</option>
+      <option value="Num9">Num9</option>
+      <option value="Num0">Num0</option>
+      <option value="Num11">Num11</option>
+      <option value="Num12">Num12</option>
+      <option value="Enter">Enter</option>
+      <option value="GGuide">GGuide</option>
+      <option value="ChannelUp">ChannelUp</option>
+      <option value="ChannelDown">ChannelDown</option>
+      <option value="VolumeUp">VolumeUp</option>
+      <option value="VolumeDown">VolumeDown</option>
+      <option value="Mute">Mute</option>
+      <option value="TvPower">TvPower</option>
+      <option value="Audio">Audio</option>
+      <option value="MediaAudioTrack">MediaAudioTrack</option>
+      <option value="Tv">Tv</option>
+      <option value="Input">Input</option>
+      <option value="TvInput">TvInput</option>
+      <option value="TvAntennaCable">TvAntennaCable</option>
+      <option value="WakeUp">WakeUp</option>
+      <option value="PowerOff">PowerOff</option>
+      <option value="Sleep">Sleep</option>
+      <option value="Right">Right</option>
+      <option value="Left">Left</option>
+      <option value="SleepTimer">SleepTimer</option>
+      <option value="Analog2">Analog2</option>
+      <option value="TvAnalog">TvAnalog</option>
+      <option value="Display">Display</option>
+      <option value="Jump">Jump</option>
+      <option value="PicOff">PicOff</option>
+      <option value="PictureOff">PictureOff</option>
+      <option value="Teletext">Teletext</option>
+      <option value="Video1">Video1</option>
+      <option value="Video2">Video2</option>
+      <option value="AnalogRgb1">AnalogRgb1</option>
+      <option value="Home">Home</option>
+      <option value="Exit">Exit</option>
+      <option value="PictureMode">PictureMode</option>
+      <option value="Confirm">Confirm</option>
+      <option value="Up">Up</option>
+      <option value="Down">Down</option>
+      <option value="ClosedCaption">ClosedCaption</option>
+      <option value="Component1">Component1</option>
+      <option value="Component2">Component2</option>
+      <option value="Wide">Wide</option>
+      <option value="EPG">EPG</option>
+      <option value="PAP">PAP</option>
+      <option value="TenKey">TenKey</option>
+      <option value="BSCS">BSCS</option>
+      <option value="Ddata">Ddata</option>
+      <option value="Stop">Stop</option>
+      <option value="Pause">Pause</option>
+      <option value="Play">Play</option>
+      <option value="Rewind">Rewind</option>
+      <option value="Forward">Forward</option>
+      <option value="DOT">DOT</option>
+      <option value="Rec">Rec</option>
+      <option value="Return">Return</option>
+      <option value="Blue">Blue</option>
+      <option value="Red">Red</option>
+      <option value="Green">Green</option>
+      <option value="Yellow">Yellow</option>
+      <option value="SubTitle">SubTitle</option>
+      <option value="CS">CS</option>
+      <option value="BS">BS</option>
+      <option value="Digital">Digital</option>
+      <option value="Options">Options</option>
+      <option value="Media">Media</option>
+      <option value="Prev">Prev</option>
+      <option value="Next">Next</option>
+      <option value="DpadCenter">DpadCenter</option>
+      <option value="CursorUp">CursorUp</option>
+      <option value="CursorDown">CursorDown</option>
+      <option value="CursorLeft">CursorLeft</option>
+      <option value="CursorRight">CursorRight</option>
+      <option value="ShopRemoteControlForcedDynamic">ShopRemoteControlForcedDynamic</option>
+      <option value="FlashPlus">FlashPlus</option>
+      <option value="FlashMinus">FlashMinus</option>
+      <option value="AudioQualityMode">AudioQualityMode</option>
+      <option value="DemoMode">DemoMode</option>
+      <option value="Analog">Analog</option>
+      <option value="Mode3D">Mode3D</option>
+      <option value="DigitalToggle">DigitalToggle</option>
+      <option value="DemoSurround">DemoSurround</option>
+      <option value="'*AD'">'*AD'</option>
+      <option value="AudioMixUp">AudioMixUp</option>
+      <option value="AudioMixDown">AudioMixDown</option>
+      <option value="PhotoFrame">PhotoFrame</option>
+      <option value="Tv_Radio">Tv_Radio</option>
+      <option value="SyncMenu">SyncMenu</option>
+      <option value="Hdmi1">Hdmi1</option>
+      <option value="Hdmi2">Hdmi2</option>
+      <option value="Hdmi3">Hdmi3</option>
+      <option value="Hdmi4">Hdmi4</option>
+      <option value="TopMenu">TopMenu</option>
+      <option value="PopUpMenu">PopUpMenu</option>
+      <option value="OneTouchTimeRec">OneTouchTimeRec</option>
+      <option value="OneTouchView">OneTouchView</option>
+      <option value="DUX">DUX</option>
+      <option value="FootballMode">FootballMode</option>
+      <option value="iManual">iManual</option>
+      <option value="Netflix">Netflix</option>
+      <option value="Assists">Assists</option>
+      <option value="ActionMenu">ActionMenu</option>
+      <option value="Help">Help</option>
+      <option value="TvSatellite">TvSatellite</option>
+      <option value="WirelessSubwoofer">WirelessSubwoofer</option>
+    </select>
+    <button type="button" id="node-input-scanaction" class="btn"><i class="icon-search"></i></button>
+  </div>
 </script>
 
 <script type="text/x-red" data-help-name="tv-bravia-put">
-  <p>Send a single action to the TV.</p>
+  <p>Send an action command to the TV.</p>
 
   <h3>Inputs</h3>
     <dl class="message-properties">
-      <dt class="optional">action <span class="property-type">string</span></dt>
-      <dd> if not set in the node configuration panel, this property specifies the command to be send to the TV.</dd>
+      <dt class="optional">payload <span class="property-type">string</span></dt>
+      <dd> if no action is set in the node configuration panel, this property specifies the action to be send to the TV.</dd>
     </dl>
 
   <h3>Outputs</h3>
 
   <h3>Details</h3>
     <p>The node sends a single action to the TV.<br>
-    If no action is given in the node configuration panel, then the action in <code>msg.action</code> is used.</p>
+    If no action is given in the node configuration panel, then the action in <code>msg.payload</code> is used.</p>
 
   <h3>References</h3>
     <ul>

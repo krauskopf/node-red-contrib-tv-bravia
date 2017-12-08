@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "description": "Node-RED nodes to control Sony Bravia TVs",
   "dependencies": {
-    "sony-bravia-tv-remote": "2.0.0"
+    "sony-bravia-tv-remote": "2.0.0",
+    "request": "^2.51.0"
   },
   "engines": {
     "node": ">=5.0.0"

@@ -25,6 +25,40 @@ SOFTWARE.
 module.exports = function(RED) {
 
   const BraviaRemoteControl = require('sony-bravia-tv-remote');
+  var request = require('request');
+
+
+  /* ---------------------------------------------------------------------------
+   * Query for list of actions from TV itself
+   * -------------------------------------------------------------------------*/
+  RED.httpAdmin.get('/tvbravia/actions', function(req, res, next) {
+    var address = req.query.address;
+    var options =  {
+      url: 'http://' + address + '/sony/system',
+      json: {
+        'id': 20,
+        'method': 'getRemoteControllerInfo',
+        'version': '1.0',
+        'params': []
+      }
+    };
+
+    request.post(options, function(error, response, body) {
+      if(error) {
+        console.error(error);
+        res.end();
+      }
+
+      if(body && body.result !== undefined && Object.keys(body.result).length === 2) {
+        var list = [];
+        for(var i in body.result[1]) {
+          list.push(body.result[1][i].name);
+        }
+        res.end(JSON.stringify(list));
+      }
+    });
+
+  });
 
 
   /* ---------------------------------------------------------------------------
@@ -79,14 +113,26 @@ module.exports = function(RED) {
   		// Input handler, called on incoming flow
       this.on('input', function(msg) {
 
+        // take action from the properties of the node. If not set, take
+        // the action from the message payload.
+        var action = node.action;
+        if (msg.hasOwnProperty('payload')) { action = node.action || msg.payload; }
+
+        if (!action) {
+          node.error('There is no action set for the node!');
+          return;
+        }
+
         // connect to tv
         const remote = new BraviaRemoteControl(node.configNode.address, node.configNode.port, node.configNode.credentials.key);
 
         // send command to TV
-        remote.sendAction(node.action).then(function() {
+        remote.sendAction(action).then(function() {
           if (node.configNode.debug) {
-            node.log('Successfully send command:' + node.action);
+            node.log('Successfully send command:' + action);
           }
+          // pass on the msg after action has been successfull send
+          node.send(msg);
         }).catch(function(error) {
           node.error('Failed to send action to TV with error: ' + error);
         });
