@@ -17,6 +17,8 @@ There is a new nodes which appears in the category 'devices' in your Node-Red pa
 #### Bravia Action
 Sends a single action to the TV.
 
+Hint: To power on the TV, you can use Wake On LAN (WOL), which is available as a separate node in Node-RED.
+
 ## History
 - 2017-Dez-12: 0.1.0 - First version.
 
